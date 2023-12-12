@@ -5,10 +5,8 @@ ___
 PixShark是专门研发给工业级水下机器人的一款开源的软硬件框架，用于水下机器人的实时控制，希望能填补专用于水下机器人的开源平台缺少的空白。
 **为什么要做PixShark？**
 水下机器人领域比较小众，开源的资料又少。由于和无人机飞控的操纵需要极为相似，所以不少水下机器人采用了飞控的解决方案。例如Bluerov作为成熟的产品，结合其开源的优势，经历了多年的技术迭代，在市场上受到极大欢迎。
-Bulerov的框架为Pixhawk（ardusub）—— Raspberry Pi 3B（不能升级）——QGroundControl。
-==这些代码大多为了飞控而设置，复杂且臃肿，里面有许许多多水下机器人用不到的东西！==
-传统PixHawk采用飞控的MAVLINK与Raspberry Pi通信，MAVROS作为ROS信息与MAVLINK之间的桥梁，这样做使得整个项目将变得更加冗余。同时，外接传感器需要额外的开发板，也意味着额外的水密舱，而且MAVLINK与ROS间协议有时MAVROS也无法协调等问题。
-水下电子舱内寸土寸金，我们希望有没有一种硬件小巧灵活，可以被很好的嵌入到Raspberry Pi中去，有没有一种嵌入式软件能够天然支持ROS框架，使开发者简单易用，不必忍受ardusub那复杂而又臃肿的代码，使得非嵌入式工程师也能快速掌握。我们希望更多的时间被应用于应用层代码编写，而不是枯燥乏味的硬件调试。
+Bulerov的框架为Pixhawk（ardusub）—— Raspberry Pi 3B（不能升级）——QGroundControl。</br>`这些代码大多为了飞控而设置，复杂且臃肿，里面有许许多多水下机器人用不到的东西！`
+传统PixHawk采用飞控的MAVLINK与Raspberry Pi通信，MAVROS作为ROS信息与MAVLINK之间的桥梁，这样做使得整个项目将变得更加冗余。同时，外接传感器需要额外的开发板，也意味着额外的水密舱，而且MAVLINK与ROS间协议有时MAVROS也无法协调等问题。</br>水下电子舱内寸土寸金，我们希望有没有一种硬件小巧灵活，可以被很好的嵌入到Raspberry Pi中去，有没有一种嵌入式软件能够天然支持ROS框架，使开发者简单易用，不必忍受ardusub那复杂而又臃肿的代码，使得非嵌入式工程师也能快速掌握。我们希望更多的时间被应用于应用层代码编写，而不是枯燥乏味的硬件调试。</br>现在，它来了！
 
 **PixShark有什么特点**
 - 小巧方便，可以像Raspberry Pi HAT那样直接插入到树莓派上面作为一个模块单独使用。甚至你可以将PixShark单独放在水下舱内，通过载波、光纤等方式与岸基进行通信。
@@ -93,23 +91,24 @@ openocd -f ./openocd.cfg -c download
 ```
 PixShark/
 ├── components
-│   ├──algorithm （存放常用数学算法）
+│   ├──algorithm （存放常用数学算法与DSP库文件）
 │   ├── controller（存放控制器实现）
-│   └── devices（存放ROV上设备的驱动文件）
-│   ├── hardware（硬件c++封装）
+│   └── devices（存放水下机器人上设备的驱动文件）
+│   ├── hardware（STM32外设基于HAL库的c++封装）
 │   ├── support（存放一些数据结构和校验算法）
+│   ├── common.cpp/hpp（引入RTOS后的通用头文件，重载了operate new/delete，使用FreeRTOS内存管理接口）
 ├── Core
     ├── Inc		（CUBEMX生成外设头文件）
     ├── Src		（CUBEMX生成外设源文件）
     └── Startup	(启动文件)
 ├── doc	(详细说明文件和记录)
 ├── Drivers	(CUBEMX生成HAL库驱动)
+├── Drivers	(CUBEMX生成HAL库驱动)
 ├── LWIP	(CUBEMX生成LWIP用户接口)
+├── micro_ros	(micro_ros的头文件与静态库(M7内核))
 ├── Middlewares（CUBEMX生成LWIP、FREERTOS等三方库）
 ├── Robot
-│   └── protocol（通信协议驱动类）
-│   ├── (others).cpp/h（各个任务的处理函数源文件）
-├── Drivers	(CUBEMX生成HAL库驱动)
+│   ├── (others).cpp/h（各个机器人任务的处理函数源文件）
 ├── USB_DEVICE	(CUBEMX生成USB用户接口)
 ├── UserAPP	    (用户二次开发水下机器人接口)
 ├── openocd.cfg	(openocd配置文件，指定仿真器类型，端口等等)
