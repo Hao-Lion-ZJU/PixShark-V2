@@ -91,6 +91,47 @@ private:
 
 };
 
+class XYT : public Crawler
+{
+public:
+    XYT(Dac *dacPtr, uint32_t dacChannel, GPIO_TypeDef *gpioPort, uint16_t gpioPin, Timer * timer);
+    virtual ~XYT();
+    /**
+	 * @brief          初始化硬件
+	 * @param[in]      none
+	 * @return  	   none
+	*/
+	void Init()
+	{
+		if(!dacPtr_->isStart())
+		{
+			dacPtr_->start();	
+		}
+	}
 
+    void set_expect_speed(int16_t speed_set);
+
+    int16_t get_rpm() const
+    {
+        return crawler_status_msg_.Speed;
+    }
+    
+private:
+
+    Dac *dacPtr_;
+
+    Timer *timer_;
+
+    GPIO_TypeDef *gpioPort_;
+
+    uint16_t gpioPin_;
+
+    uint32_t dacChannel_;
+
+    struct {
+        int16_t Speed;
+    } crawler_status_msg_;  //回传履带电机状态
+
+};
 
 #endif /* _CRAWLER_HPP_ */

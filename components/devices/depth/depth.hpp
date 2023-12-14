@@ -136,10 +136,51 @@ private:
 		T =  0x0006,	 //温度，单位为℃
 		UART  = 0x0200   //串口相关设置		
 	}depth_StAdd;//更多地址参见科勒说明书
-
-
-
 	
+};
+
+class MS5837 : public Depth
+{
+public:
+	MS5837(serial::Serial* SerialPtr);
+	~MS5837(){}
+
+	/**
+	 * @brief          初始化硬件
+	 * @param[in]      none
+	 * @return  	   none
+	*/
+	void Init()
+	{
+		if(!SerialPtr_->isOpen())
+		{
+			SerialPtr_->open(O_RDWR);	
+		}
+	}
+
+	/**
+	 * @brief          软件复位
+	 * @param[in]      none
+	 * @return  	   none
+	*/
+	void Reset(void);
+
+	/**
+	 * @brief          深度计协议解析
+	 * @param[in]      depth_frame: 原生数据指针
+	 * @return  	   none
+	*/
+	void depth_data_solve(volatile const uint8_t *depth_frame);
+
+public:
+	static constexpr auto DEPTH_CMD_LENGTH = 16; //深度计发送缓冲区长度
+	static constexpr auto DEPTH_DATA_LENGTH = 32; //深度计一帧数据长度
+	
+private:
+	uint8_t depth_tx_buf[DEPTH_CMD_LENGTH]={0};
+
+	serial::Serial *SerialPtr_;	//深度计串口指针
+
 };
 
 #endif /* _DEPTH_HPP_ */

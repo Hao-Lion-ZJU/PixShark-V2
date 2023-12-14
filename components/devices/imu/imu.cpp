@@ -229,3 +229,52 @@ bool BWIMU::imu_check(uint8_t *data_message)
   }
   else{return 0;}
 }
+
+SC::SC(serial::Serial *serialPtr)
+{
+  configASSERT(serialPtr != nullptr);
+  this->SerialPtr_ = serialPtr;
+  memset(this->imu_tx_buf, 0, sizeof(this->imu_tx_buf));
+}
+
+void SC::Reset(void)
+{
+    this->send_pack(START_CMD_ID);
+}
+
+uint16_t SC::send_pack(uint8_t cmd_type)
+{
+	this->imu_tx_buf[0] = IMU_HEADER_SOF >> 8;
+	this->imu_tx_buf[1] = IMU_HEADER_SOF & 0xff;
+	this->imu_tx_buf[2] = 0x04;
+	this->imu_tx_buf[3] = cmd_type;
+	this->imu_tx_buf[4] = cmd_type + 0x04;
+	this->imu_tx_buf[5] = 0xAA;
+	uint16_t send_len = this->SerialPtr_->write(imu_tx_buf, IMU_CMD_LENGTH);
+	return send_len;
+}
+
+void SC::imu_data_solve(volatile const uint8_t *imu_frame)
+{
+  	uint8_t* imu_frame_temp = (uint8_t*)imu_frame;
+
+	if (imu_frame_temp == NULL)
+	{
+		return;
+	}
+
+	if((imu_frame_temp[0])<<8 | (imu_frame_temp[1]) == IMU_HEADER_SOF
+		&& imu_frame_temp[2] == 0x25 
+		&& imu_frame_temp[IMU_DATA_LENGTH - 1] == DATA_EOF)
+	{
+		this->imu_data.Angle_z = (float)(((imu_frame[3]<<8) + imu_frame[4]))*0.1;						//偏航角，单位为°
+		this->imu_data.Angle_x = (float)(((imu_frame[5]<<8) + imu_frame[6]))*0.1;						//俯仰角
+		this->imu_data.Angle_y = (float)(((imu_frame[7]<<8) + imu_frame[8]))*0.1;						//横滚角
+		this->imu_data.Acc_x = (float)(((imu_frame[9]<<8) + imu_frame[10]))/16384;						//X方向加速度，单位为g
+		this->imu_data.Acc_y = (float)(((imu_frame[11]<<8) + imu_frame[12]))/16384;						//y方向加速度
+		this->imu_data.Acc_z = (float)(((imu_frame[13]<<8) + imu_frame[14]))/16384;						//z方向加速度
+		this->imu_data.Gyrol_x = (float)(((imu_frame[15]<<8) + imu_frame[16]))/32.8;					//X方向角速度，单位为°/s
+		this->imu_data.Gyrol_y = (float)(((imu_frame[17]<<8) + imu_frame[18]))/32.8;					//y方向角速度
+		this->imu_data.Gyrol_z = (float)(((imu_frame[19]<<8) + imu_frame[20]))/32.8;	                //z方向角速度
+	}
+}

@@ -111,4 +111,63 @@ private:
     }servo_cmd_e;
 };
 
+/**
+ * D30舵机，PWM控制
+*/
+class D30 : public Servo
+{
+public:
+    D30(Pwm *);
+    ~D30();
+
+    /**
+	 * @brief          初始化硬件
+	 * @param[in]      none
+	 * @return  	   none
+	*/
+	void Init()
+	{
+		if(!pwm_->isEnable())
+		{
+			
+		}
+	}
+
+    /**
+     * @brief 设置舵机控制角度，单圈-135°~135°
+     * @param[in] angle_set:  舵机角度
+     * @retval none
+    */
+    void set_servo_angle(int16_t angle_set);
+
+    /**
+     * @brief 设置舵机上电初始角度，0°
+     * @param[in] none
+     * @retval none
+    */
+    void set_servo_initangle();
+
+    /**
+     * @brief 获取舵机角度
+     * @retval none
+    */
+    int16_t get_servo_angle(void)
+    {
+        return this->curAngle_;
+    }
+
+    /**
+     * @brief 舵机控制角度限幅，-135°~135°
+     * @param[in] angle_set:  舵机角度
+     * @retval none
+    */
+    int16_t limit_angle(int16_t angle_set);
+
+private:
+    Pwm *pwm_;
+    int16_t initAngle_ = 0;
+    int16_t curAngle_;
+    static constexpr auto maxAngle_ = 135;
+};
+
 #endif /* _SERVO_HPP_ */

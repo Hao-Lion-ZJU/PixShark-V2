@@ -206,4 +206,73 @@ private:
 	serial::Serial *SerialPtr_;	//IMU串口指针
 };
 
+class SC : public IMU
+{
+public:
+	SC(serial::Serial *serialPtr);
+	~SC() = default;
+
+	/**
+	 * @brief          IMU协议解析
+	 * @param[in]      imu_frame: 原生数据指针
+	 * @return  	   none
+	*/
+	void imu_data_solve(volatile const uint8_t *imu_frame);
+
+	/**
+	 * @brief          初始化硬件
+	 * @param[in]      none
+	 * @return  	   none
+	*/
+	void Init(void)
+	{
+		if(!SerialPtr_->isOpen())
+		{
+			SerialPtr_->open();	
+		}
+	}
+
+	/**
+	 * @brief          100D4软件复位
+	 * @param[in]      none
+	 * @return  	   none
+	*/
+	void Reset(void);
+
+	/**
+	 * @brief          IMU协议解析
+	 * @param[in]      imu_frame: 原生数据指针
+	 * @return  	   none
+	*/
+	void imu_data_solve(volatile const uint8_t *imu_frame) const;
+
+	/**
+	 * @brief          发送内容打包
+	 * @param[in]      cmd_type:  命令内容ID
+	 * @return  	   返回要发送的数据大小
+	*/
+	uint16_t send_pack(uint8_t cmd_type);
+
+public:
+	static constexpr auto IMU_CMD_LENGTH = 6; //IMU指令长度
+	static constexpr auto IMU_DATA_LENGTH = 40; //IMU数据长度
+	static constexpr auto IMU_HEADER_SOF = 0XA551; //IMU帧头
+	static constexpr auto DATA_EOF = 0XAA; //IMU帧尾
+	typedef enum
+	{
+		START_CMD_ID                 	= 0x01,
+		STOP_CMD_ID                		= 0x02,
+		CALIBRATION_CMD_ID             	= 0xE3,
+		SAVE_CALIBRATION_CMD_ID         = 0xE1,
+		OPEN_MAGNETIC_CORRECT_CMD_ID   	= 0xE2,
+		CLOSE_MAGNETIC_CORRECT_CMD_ID  	= 0xE4,
+	} imu_cmd_id_e;
+
+private:
+	serial::Serial *SerialPtr_;	//IMU串口指针
+
+	uint8_t imu_tx_buf[IMU_CMD_LENGTH] = {0};
+
+};
+
 #endif /* _IMU_HPP_ */

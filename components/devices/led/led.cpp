@@ -108,3 +108,19 @@ void Barlus::on(uint8_t brightness)
     
     
 }
+
+SL::SL(Pwm *pwm)
+{
+    configASSERT(pwm != nullptr);
+    this->pwm_ = pwm;
+}
+
+void SL::off()
+{
+    this->pwm_->setDutyCycle(27);
+}
+
+void SL::on(uint8_t brightness)
+{
+    this->pwm_->setDutyCycle(brightness / 5.0 + 27);
+}

@@ -104,12 +104,12 @@ bool Can::sendto(uint32_t Id, uint8_t* pData, uint32_t Size, uint32_t Id_type)
     FDCAN_TxHeaderTypeDef TxHeader;
     TxHeader.Identifier = Id;											//ID	
     TxHeader.IdType = Id_type;									        //ID类型
-    TxHeader.TxFrameType = FDCAN_DATA_FRAME;								//数据帧
+    TxHeader.TxFrameType = FDCAN_DATA_FRAME;							//数据帧
     TxHeader.DataLength = (uint32_t)(Size << 16);						//数据长度
 	TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	TxHeader.BitRateSwitch = FDCAN_BRS_OFF;								//关闭数据波特率切换
-	TxHeader.FDFormat=FDCAN_CLASSIC_CAN;                					//传统的CAN模式
-    TxHeader.TxEventFifoControl=FDCAN_NO_TX_EVENTS;     					//无发送事件
+	TxHeader.FDFormat=FDCAN_CLASSIC_CAN;                				//传统的CAN模式
+    TxHeader.TxEventFifoControl=FDCAN_NO_TX_EVENTS;     				//无发送事件
     TxHeader.MessageMarker=0;
 
     uint32_t tickstart;
@@ -117,7 +117,6 @@ bool Can::sendto(uint32_t Id, uint8_t* pData, uint32_t Size, uint32_t Id_type)
     tickstart = HAL_GetTick();
     while(HAL_FDCAN_AddMessageToTxFifoQ(hcanPtr_, &TxHeader, pData) != HAL_OK)
     {
-        osDelay( 1 / portTICK_PERIOD_MS);
         if (((HAL_GetTick() - tickstart) > timeout_) || (timeout_ == 0U))
         {
             return false;

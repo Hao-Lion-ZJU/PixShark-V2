@@ -69,5 +69,41 @@ private:
     uint8_t led_tx_buffer[7];
 };
 
+/**
+ * SL LED灯，PWM控制
+*/
+class SL : public LED
+{
+public:
+    SL(Pwm *pwm);
+    ~SL();
+
+    /**
+	 * @brief          初始化硬件
+	 * @param[in]      none
+	 * @return  	   none
+	*/
+	void Init()
+	{
+		if(!pwm_->isEnable())
+		{
+			throw("pwm is not enable");
+		}
+	}
+
+    /**
+     * @brief 关闭LED灯
+    */
+    void off(void);
+
+    /**
+     * @brief 开启灯光，亮度映射到0-100
+    */
+    void on(uint8_t brightness);
+
+private:   
+    Pwm *pwm_;
+
+};
 
 #endif /* _LED_HPP_ */

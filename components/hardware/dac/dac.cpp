@@ -32,8 +32,8 @@ void Dac::start()
 {
     if(!isStart_)
     {
-        HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1,&dac_ch1_value,1,DAC_ALIGN_12B_R);
-        HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2,&dac_ch2_value,1,DAC_ALIGN_12B_R);
+        HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+        HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
         isStart_ = true;
     }
     
@@ -43,8 +43,8 @@ void Dac::stop()
 {
     if(isStart_)
     {
-        HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
-        HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_2);
+        HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1);
+        HAL_DAC_Stop(&hdac1, DAC_CHANNEL_2);
         isStart_ = false;
     }
 }
@@ -63,4 +63,5 @@ void Dac::setvalue(uint32_t channel, uint32_t value)
     {
         configASSERT(0);
     }
+    HAL_DAC_SetValue(hdacPtr_, channel, DAC_ALIGN_12B_R, value);
 }
