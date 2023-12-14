@@ -96,14 +96,14 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  SCB->CACR|=1<<2;   //�?启D-chache透写，否则容易产生莫名其妙的错误
+  SCB->CACR|=1<<2;   //开启D-Cache透写
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  HAL_Delay(1000);//等待网卡初始化，否则容易卡死
+  HAL_Delay(1000);//延时1s，等待网卡初始化
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */

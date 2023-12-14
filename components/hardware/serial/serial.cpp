@@ -18,27 +18,55 @@
 
 #include "serial/serial.hpp"
 #include <string.h>
+#include "semphr.h"
 
-#define UART_FIFO_SIZE  512 //串口fifo缓存大小
+#define UART_FIFO_SIZE  512 //serial fifo size
 
-/**stm32 串口缓存区*/
-static fifo_single* fifo_usart1_ptr;
-static fifo_single* fifo_usart2_ptr;
-static fifo_single* fifo_usart3_ptr;
-static fifo_single* fifo_uart4_ptr;
-static fifo_single* fifo_uart5_ptr;
-static fifo_single* fifo_usart6_ptr;
-static fifo_single* fifo_uart7_ptr;
-static fifo_single* fifo_uart8_ptr;
+#define RS485EN_TX(GPIOx, Pin) {GPIOx->BSRR=Pin;}                         //Pull the level high
+#define RS485EN_RX(GPIOx, Pin) {GPIOx->BSRR=(uint32_t)Pin << 16;}          //Pull the level low
+
+typedef struct 
+{
+    fifo_single* fifo_ptr;
+    GPIO_TypeDef* Gpiox;
+    uint16_t Pin;
+    // osSemaphoreId* semHandlePtr;
+    SemaphoreHandle_t uart_sem;
+}serial_config_t;
+
+
+static serial_config_t serial_config[8];
+
+
+#define get_index(huartptr, index) \
+if(huartptr->Instance == USART1) \
+index = 0; \
+else if(huartptr->Instance == USART2) \
+index = 1; \
+else if(huartptr->Instance == USART3) \
+index = 2; \
+else if(huartptr->Instance == UART4) \
+index = 3; \
+else if(huartptr->Instance == UART5) \
+index = 4; \
+else if(huartptr->Instance == USART6) \
+index = 5; \
+else if(huartptr->Instance == UART7) \
+index = 6; \
+else if(huartptr->Instance == UART8) \
+index = 7; 
 
 
 namespace serial
 {
-    Serial::Serial(UART_HandleTypeDef* huart, uint32_t Timeout)
+    Serial::Serial(UART_HandleTypeDef* huart,flowcontrol_t flowcontrol, GPIO_TypeDef* GPIOx, uint16_t Pin, uint32_t Timeout)
     {
         configASSERT(huart != nullptr);
         huartPtr_ = huart;
         Timeout_ = Timeout;
+        flowcontrol_ = flowcontrol;
+        GPIOx_ = GPIOx;
+        Pin_ = Pin;
     }
 
     Serial::~Serial()
@@ -65,99 +93,27 @@ namespace serial
             configASSERT(uart_fifoPtr_ != nullptr);
             rx_buffer_ = (uint8_t*)pvPortMalloc(UART_FIFO_SIZE);
             configASSERT(rx_buffer_ != nullptr);
-             if(huartPtr_->Instance == USART1)
-            {
-                //has been opened
-                if(fifo_usart1_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_usart1_ptr = uart_fifoPtr_;
+            uint8_t index = 0;
+            get_index(huartPtr_, index);
+            if(serial_config[index].fifo_ptr != nullptr){
+                delete uart_fifoPtr_;
+                vPortFree(rx_buffer_);
+                isOpen_ = false;
+            }    
+            else{
+                serial_config[index].fifo_ptr = uart_fifoPtr_;
+                // osSemaphoreDef(sem);
+                // semHandle_ = osSemaphoreNew(1,0,osSemaphore(sem));
+                // serial_config[index].semHandlePtr = &semHandle_;
+                serial_config[index].uart_sem = xSemaphoreCreateBinary();
+                semHandle_ = serial_config[index].uart_sem;
+                if(flowcontrol_ == flowcontrol_software){
+                    configASSERT(GPIOx_ != nullptr);
+                    serial_config[index].Gpiox = GPIOx_;
+                    serial_config[index].Pin = Pin_;
                 }
             }
-            else if(huartPtr_->Instance == USART2)
-            {
-                if(fifo_usart2_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_usart2_ptr = uart_fifoPtr_;
-                }
-            }
-            else if(huartPtr_->Instance == USART3)
-            {
-                if(fifo_usart3_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_usart3_ptr = uart_fifoPtr_;
-                }
-            }
-            else if(huartPtr_->Instance == UART4)
-            {
-                if(fifo_uart4_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_uart4_ptr = uart_fifoPtr_;
-                }
-            }
-            else if(huartPtr_->Instance == UART5)
-            {
-                if(fifo_uart5_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_uart5_ptr = uart_fifoPtr_;
-                }
-            }
-            else if(huartPtr_->Instance == USART6)
-            {
-                if(fifo_usart6_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_usart6_ptr = uart_fifoPtr_;
-                }
-            }
-            else if(huartPtr_->Instance == UART7)
-            {
-                if(fifo_uart7_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_uart7_ptr = uart_fifoPtr_;
-                }
-            }
-            else if(huartPtr_->Instance == UART8)
-            {
-                if(fifo_uart8_ptr != nullptr){
-                    delete uart_fifoPtr_;
-                    vPortFree(rx_buffer_);
-                    isOpen_ = false;
-                }    
-                else{
-                    fifo_uart8_ptr = uart_fifoPtr_;
-                }
-            }
-            else
-            {
-                configASSERT(0);
-            }
+            
             HAL_UARTEx_ReceiveToIdle_DMA(huartPtr_, rx_buffer_, UART_FIFO_SIZE);
             if(mode == O_RDONLY)
             {
@@ -184,31 +140,10 @@ namespace serial
             HAL_UART_AbortReceive_IT(huartPtr_);
             isOpen_ = false;
             if(mode_ == O_RDONLY || mode_ == O_RDWR){
-                if(huartPtr_->Instance == USART1)
-                {
-                    fifo_usart1_ptr = nullptr;
-                } else if(huartPtr_->Instance == USART2)
-                {
-                    fifo_usart2_ptr = nullptr;
-                } else if(huartPtr_->Instance == USART3)
-                {
-                    fifo_usart3_ptr = nullptr;
-                } else if(huartPtr_->Instance == UART4)
-                {
-                    fifo_uart4_ptr = nullptr;
-                } else if(huartPtr_->Instance == UART5)
-                {
-                    fifo_uart5_ptr = nullptr;
-                } else if(huartPtr_->Instance == USART6)
-                {
-                    fifo_usart6_ptr = nullptr;
-                } else if(huartPtr_->Instance == UART7)
-                {
-                    fifo_uart7_ptr = nullptr;
-                } else if(huartPtr_->Instance == UART8)
-                {
-                    fifo_uart8_ptr = nullptr;            
-                }
+
+                uint8_t index = 0;
+                get_index(huartPtr_, index);
+                serial_config[index].fifo_ptr = nullptr;
                 delete uart_fifoPtr_;
                 vPortFree(rx_buffer_);
             }
@@ -234,7 +169,11 @@ namespace serial
             size_t read_len = 0;
             if (uart_fifoPtr_ != nullptr)
             {
-                read_len = uart_fifoPtr_->fifo_s_gets(buf, len, Timeout_);
+                if(uart_fifoPtr_->IsEmpty())
+                {
+                    osSemaphoreAcquire(semHandle_, Timeout_);
+                }
+                read_len = uart_fifoPtr_->fifo_s_gets(buf, len);
             }
             return read_len;
         }
@@ -248,6 +187,9 @@ namespace serial
     {
         if((mode_ == O_WRONLY || mode_ == O_RDWR) && isOpen_ && (len > 0))
         {
+            if(flowcontrol_ == flowcontrol_software && GPIOx_ != nullptr){
+                RS485EN_TX(GPIOx_, Pin_);
+            }
             HAL_UART_Transmit_DMA(huartPtr_, (uint8_t*)buf, len);
             return len;
         }
@@ -317,59 +259,29 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     //清除Cache缓存
 	SCB_InvalidateDCache_by_Addr ((uint32_t *)rx_buffer, Size);
 
-        if(huart->Instance == USART1)
-        {
-            if(fifo_usart1_ptr != nullptr)
-            {
-                fifo_usart1_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }
-        } else if(huart->Instance == USART2)
-        {
-            if(fifo_usart2_ptr != nullptr)
-            {
-                fifo_usart2_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }
-        } else if(huart->Instance == USART3)
-        {
-            if(fifo_usart3_ptr != nullptr)
-            {
-                fifo_usart3_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }
-        } else if(huart->Instance == UART4)
-        {
-            if(fifo_uart4_ptr != nullptr)
-            {
-                fifo_uart4_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }
-        } else if(huart->Instance == UART5)
-        {
-            if(fifo_uart5_ptr != nullptr)
-            {
-                fifo_uart5_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }
-        } else if(huart->Instance == USART6)
-        {
-            if(fifo_usart6_ptr != nullptr)
-            {
-                fifo_usart6_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }
-        } else if(huart->Instance == UART7)
-        {
-            if(fifo_uart7_ptr != nullptr)
-            {
-                fifo_uart7_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }
-        } else if(huart->Instance == UART8)
-        {
-            if(fifo_uart8_ptr != nullptr)
-            {
-                fifo_uart8_ptr->fifo_s_puts(rx_buffer, Size, true);
-            }      
-        }
+    uint8_t index = 0;
+    get_index(huart, index);
+    if(serial_config[index].fifo_ptr != nullptr)
+    {
+        serial_config[index].fifo_ptr->fifo_s_puts(rx_buffer, Size, true);
+        osSemaphoreRelease((osSemaphoreId_t)(serial_config[index].uart_sem));
+    }      
 
     //重新开启DMA接收
     HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buffer, UART_FIFO_SIZE);
-            
-
 }
 
+/**
+  * @brief Tx Transfer completed callback.
+  * @param huart UART handle.
+  * @retval None
+  */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+    uint8_t index = 0;
+    get_index(huart, index);
+    if(serial_config[index].Gpiox != nullptr)
+    {
+        RS485EN_RX(serial_config[index].Gpiox, serial_config[index].Pin);
+    }
+}

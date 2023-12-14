@@ -36,6 +36,7 @@ extern rclc_executor_t sub_executor;
 #include "common.hpp"
 #include "cabin_info_task.hpp"
 #include "altimeter_task.hpp"
+#include "imu_task.hpp"
 #include "led_task.hpp"
 #include "servo_task.hpp"
 #include "param_task.hpp"

@@ -49,13 +49,12 @@ public:
     int fifo_s_puts(uint8_t* p_source, uint16_t len, bool overwrite = false);
 
 
-    int fifo_s_gets(uint8_t *p_dest, uint16_t len, uint32_t timeout = 0);
+    int fifo_s_gets(uint8_t *p_dest, uint16_t len);
 
     void fifo_s_flush();
 
 private:
     osMutexId fifo_mutexHandle;      //!< FIFO lock
-    osSemaphoreId fifo_semHandle;      //!< FIFO Semaphore
     uint8_t *p_start_addr; //!< FIFO Memory Pool Start Address
     uint8_t *p_end_addr;   //!< FIFO Memory Pool End Address
     uint32_t free_num;       //!< The remain capacity of FIFO
@@ -63,7 +62,6 @@ private:
     uint8_t unit_size;      //!< FIFO Element Size(Unit: Byte)
     uint8_t *p_read_addr;  //!< FIFO Data Read Index Pointer
     uint8_t *p_write_addr; //!< FIFO Data Write Index Pointer
-    bool empty_flag;       //!< FIFO Empty Flag
 };
 
 #endif /* USE_OS */

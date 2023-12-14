@@ -34,14 +34,10 @@ fifo_single::fifo_single(uint32_t uint_cnt)
 
     //!Define mutex
     osMutexDef(fifo_mutex);
-    //! Define semaphore
-    osSemaphoreDef(fifo_sem);
     //! Create mutex and semaphore
     #if (osCMSIS < 0x20000U)
-    fifo_semHandle = osSemaphoreCreate(osSemaphore(fifo_sem),1);
     fifo_mutexHandle = osMutexCreate(osMutex(fifo_mutex));
     #else
-    fifo_semHandle = osSemaphoreNew(1,0,osSemaphore(fifo_sem));
     fifo_mutexHandle = osMutexNew(osMutex(fifo_mutex));
     #endif
     //! Allocate Memory for pointer of new FIFO
@@ -55,7 +51,6 @@ fifo_single::fifo_single(uint32_t uint_cnt)
     this->p_read_addr = (uint8_t *)p_start_addr;
     this->p_write_addr = (uint8_t *)p_start_addr;
     this->unit_size = 1;
-    this->empty_flag = true;
 }
 
 fifo_single::~fifo_single()
@@ -65,7 +60,7 @@ fifo_single::~fifo_single()
     p_start_addr = nullptr;
 }
 
-int fifo_single::fifo_s_gets(uint8_t *p_dest, uint16_t len, uint32_t timeout)
+int fifo_single::fifo_s_gets(uint8_t *p_dest, uint16_t len)
 {
     int retval;
     uint16_t len_to_end;
@@ -74,14 +69,6 @@ int fifo_single::fifo_s_gets(uint8_t *p_dest, uint16_t len, uint32_t timeout)
 
     configASSERT(p_dest);
 
-    if (0 == this->used_num)
-    {
-        empty_flag = true;
-        //规定时间内为获得数据，返回错误
-        if(osSemaphoreAcquire(fifo_semHandle, timeout) != osOK){
-            return FIFO_Empty;
-        }
-    }
     //! add lock
     osMutexWait(fifo_mutexHandle, osWaitForever);
     if (this->p_read_addr > this->p_end_addr)
@@ -124,11 +111,7 @@ int fifo_single::fifo_s_puts(uint8_t* p_source, uint16_t len, bool overwrite)
     int len_from_start;
 
     configASSERT(p_source);
-    if(empty_flag && len > 0){
-        osSemaphoreRelease(fifo_semHandle);
-        empty_flag = false;
-    }
-
+    
     if (0 == this->free_num)
     {
         if (!overwrite)

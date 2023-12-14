@@ -21,6 +21,14 @@ enum UART_FLAG
   O_RDWR = 0x03   //收发数据
 };
 
+/*!
+ * Enumeration defines the possible flowcontrol types for the serial port.
+ */
+typedef enum {
+  flowcontrol_none = 0,
+  flowcontrol_software,
+  flowcontrol_hardware
+} flowcontrol_t;
 
 namespace serial
 {
@@ -35,9 +43,13 @@ public:
     * \param huart  UART handle 
     *
     * \param timeout Timeout before read/write calls return, default is forever
+    * 
+    * \param flowcontrol Type of flowcontrol used, default is
+    * flowcontrol_none, possible values are: flowcontrol_none,
+    * flowcontrol_software, flowcontrol_hardware
     *
     */
-    Serial (UART_HandleTypeDef* huart, uint32_t Timeout = 100);
+    Serial (UART_HandleTypeDef* huart,flowcontrol_t flowcontrol = flowcontrol_none, GPIO_TypeDef* GPIOx = nullptr, uint16_t Pin = 0, uint32_t Timeout = 100);
 
     /*! Destructor */
     virtual ~Serial ();
@@ -143,10 +155,14 @@ public:
 private:
     UART_HandleTypeDef* huartPtr_;
     fifo_single* uart_fifoPtr_;
+    osSemaphoreId semHandle_;
     bool isOpen_ = false;
     uint32_t Timeout_;
     uint8_t* rx_buffer_;
     UART_FLAG mode_;
+    uint8_t flowcontrol_;
+    GPIO_TypeDef* GPIOx_;
+    uint16_t Pin_;
 };
 
 } // namespace serial
