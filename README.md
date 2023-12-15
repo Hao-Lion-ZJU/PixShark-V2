@@ -3,9 +3,13 @@ ___
 ## 1.前言
 **什么是PixShark？**</br>
 PixShark是专门研发给工业级水下机器人的一款开源的软硬件框架，用于水下机器人的实时控制，希望能填补专用于水下机器人的开源平台缺少的空白。</br>
+<center class="half">
+<img src="doc/.image/PixShark-P.jpg"  width="300px">
+<img src="doc/.image/PixShark-N.jpg"  width="300px">
+</center>
+
 **为什么要做PixShark？**</br>
-水下机器人领域比较小众，开源的资料又少。由于和无人机飞控的操纵需要极为相似，所以不少水下机器人采用了飞控的解决方案。例如Bluerov作为成熟的产品，结合其开源的优势，经历了多年的技术迭代，在市场上受到极大欢迎。</br>
-Bulerov的框架为Pixhawk（ardusub）—— Raspberry Pi 3B（不能升级）——QGroundControl。</br>`这些代码大多为了飞控而设置，复杂且臃肿，里面有许许多多水下机器人用不到的东西！`
+水下机器人领域比较小众，开源的资料又少。由于和无人机飞控的操纵需要极为相似，所以不少水下机器人采用了飞控的解决方案。例如Bluerov作为比较成熟的产品，推出了自己的开源框架为Pixhawk—— Raspberry Pi 3B —— QGroundControl。</br>`这些代码大多为了飞控而设置，复杂且臃肿，里面有许许多多水下机器人用不到的东西！`
 传统PixHawk采用飞控的MAVLINK与Raspberry Pi通信，MAVROS作为ROS信息与MAVLINK之间的桥梁，这样做使得整个项目将变得更加冗余。同时，外接传感器需要额外的开发板，也意味着额外的水密舱，而且MAVLINK与ROS间协议有时MAVROS也无法协调等问题。</br>
 水下电子舱内寸土寸金，我们希望有没有一种硬件小巧灵活，可以被很好的嵌入到Raspberry Pi中去，有没有一种嵌入式软件能够天然支持ROS框架，使开发者简单易用，不必忍受ardusub那复杂而又臃肿的代码，使得非嵌入式工程师也能快速掌握。我们希望更多的时间被应用于应用层代码编写，而不是枯燥乏味的硬件调试。</br>现在，它来了！
 
