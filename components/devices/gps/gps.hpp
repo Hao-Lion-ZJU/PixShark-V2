@@ -45,4 +45,23 @@ protected:
 	gps_data_t gps_data;
 };
 
+
+/**
+ * @brief   北斗定位模块 原本为TTL，组装成485通讯
+*/
+class OEMR980 : public GPS
+{
+
+public:
+	OEMR980(serial::Serial *serialPtr);
+	~OEMR980();
+
+	
+	void gps_data_solve(volatile const uint8_t *gps_frame);
+
+private:
+	serial::Serial *SerialPtr_;	//GPS串口指针
+	
+};
+
 #endif /* _GPS_HPP_ */

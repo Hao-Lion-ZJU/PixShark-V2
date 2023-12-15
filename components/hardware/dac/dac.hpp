@@ -30,7 +30,7 @@ public:
 private:
 
     DAC_HandleTypeDef* hdacPtr_;
-    uint32_t dac_ch1_value = 0;
+    uint32_t dac_ch1_value = 0; 
     uint32_t dac_ch2_value = 0;
     bool isStart_ = false;
 };

@@ -211,7 +211,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void OnTimerCallback(TIM_TypeDef *timInstance);
 /* USER CODE END 4 */
 
 /* MPU Configuration */
@@ -270,7 +270,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  else
+  {
+    OnTimerCallback(htim->Instance);
+  }
   /* USER CODE END Callback 1 */
 }
 
