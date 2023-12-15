@@ -4,6 +4,7 @@
 
 #include "common.hpp"
 #include "serial/serial.hpp"
+#include "pwm/pwm.hpp"
 
 
 
