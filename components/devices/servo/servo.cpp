@@ -198,3 +198,29 @@ void AUSServo::modify_servo_id(uint8_t new_id)
     servo_id = new_id;
     send_servo_pack(Modify_Id_id, data, sizeof(data));
 }
+
+D30::D30(Pwm *pwm)
+{
+    configASSERT(pwm != nullptr);
+    this->pwm_ = pwm;
+}
+
+void D30::set_servo_angle(int16_t angle_set)
+{
+    int16_t angle_set_ = angle_set;
+    angle_set_ = this->limit_angle(angle_set_);
+    this->pwm_->setDutyCycle(angle_set_ * 4 / 135.0 + 6);
+    this->curAngle_ = angle_set;
+}
+
+void D30::set_servo_initangle()
+{
+    this->set_servo_angle(initAngle_);
+}
+
+int16_t D30::limit_angle(int16_t angle_set)
+{
+    if(angle_set > maxAngle_) angle_set = maxAngle_;
+    else if(angle_set < -maxAngle_) angle_set = -maxAngle_;
+    return angle_set;
+}

@@ -139,4 +139,43 @@ void KELLER::request_data(void)
   read_register(P1, 1);
 }
 
+/**
+ * @brief          MS5837构造函数
+ * @param[in]      none
+ * @return  	     none
+*/
+MS5837::MS5837(serial::Serial* serialPtr)
+{
+    configASSERT(serialPtr != nullptr);
+    this->SerialPtr_ = serialPtr;
+}
+
+/**
+ * @brief          MS5837软件复位
+ * @param[in]      none
+ * @return  	     none
+*/
+void MS5837::Reset()
+{
+    uint8_t tx_len = sprintf((char *)depth_tx_buf, "!R\r\n");
+    this->SerialPtr_->write(depth_tx_buf, tx_len);
+}
+
+/**
+ * @brief          深度计协议解析，直接读取压力值
+ * @param[in]      depth_frame:原生数据指针
+ * @return  	     none
+*/
+void MS5837::depth_data_solve(volatile const uint8_t *depth_frame)
+{
+    uint8_t *depth_frame_temp = (uint8_t *)depth_frame;
+    for(int i = 0; i < DEPTH_DATA_LENGTH; i++)
+    {
+        if(*(depth_frame_temp + i) == 'D')
+        {
+            this->depth_data = atof((char const *)(depth_frame_temp + i + 2));
+            break;
+        }
+    }
+}
 

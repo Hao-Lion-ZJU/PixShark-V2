@@ -28,3 +28,25 @@ void GIANT::request_data()
     cmd_buf[0] = GET_CURRENT_SPEED_POSITION;
     canPtr_->sendto(this->CAN_ID,cmd_buf,1);
 }
+
+XYT::XYT(Dac *dacPtr, uint32_t dacChannel, GPIO_TypeDef *gpioPort, uint16_t gpioPin, Timer * timer)
+{
+    configASSERT(dacPtr != nullptr);
+    this->dacPtr_ = dacPtr;
+    this->dacChannel_ = dacChannel;
+	this->gpioPort_ =gpioPort;
+	this->gpioPin_ = gpioPin;
+    this->timer_ = timer;
+}
+
+void XYT::set_expect_speed(int16_t speed_set)
+{
+	int16_t speed = speed_set;
+	if(speed >= 0) HAL_GPIO_WritePin(gpioPort_, gpioPin_, GPIO_PIN_SET);
+	else 
+	{
+		HAL_GPIO_WritePin(gpioPort_, gpioPin_, GPIO_PIN_RESET);
+		speed = -speed;
+	}
+    this->dacPtr_->setvalue(dacChannel_, speed_set);
+}
